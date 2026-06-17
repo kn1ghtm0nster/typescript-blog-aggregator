@@ -1,0 +1,27 @@
+{
+	"name": "typescript-blog-aggregator",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "tsx ./src/index.ts"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kn1ghtm0nster/typescript-blog-aggregator.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"type": "module",
+	"bugs": {
+		"url": "https://github.com/kn1ghtm0nster/typescript-blog-aggregator/issues"
+	},
+	"homepage": "https://github.com/kn1ghtm0nster/typescript-blog-aggregator#readme",
+	"devDependencies": {
+		"@types/node": "^25.9.3",
+		"tsx": "^4.22.4",
+		"typescript": "^6.0.3"
+	}
+}
