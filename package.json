@@ -21,6 +21,7 @@
 	"homepage": "https://github.com/kn1ghtm0nster/typescript-blog-aggregator#readme",
 	"devDependencies": {
 		"@types/node": "^25.9.3",
+		"prettier": "^3.8.4",
 		"tsx": "^4.22.4",
 		"typescript": "^6.0.3"
 	}
