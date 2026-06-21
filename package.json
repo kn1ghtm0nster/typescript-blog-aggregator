@@ -21,8 +21,13 @@
 	"homepage": "https://github.com/kn1ghtm0nster/typescript-blog-aggregator#readme",
 	"devDependencies": {
 		"@types/node": "^25.9.3",
+		"drizzle-kit": "^0.31.10",
 		"prettier": "^3.8.4",
 		"tsx": "^4.22.4",
 		"typescript": "^6.0.3"
+	},
+	"dependencies": {
+		"drizzle-orm": "^0.45.2",
+		"postgres": "^3.4.9"
 	}
 }
