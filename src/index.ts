@@ -1,13 +1,13 @@
 import { argv } from "process";
 
-import { readConfig, setUser } from "./config";
 import { CommandRegistry } from "./types/registry";
 import { registerCommand, runCommand } from "./funcs/registry-funcs";
-import { handlerLogin } from "./handlers/command-handlers";
+import { handlerLogin, handlerRegister } from "./handlers/command-handlers";
 
-function main(): void {
+async function main(): Promise<void> {
   const registry: CommandRegistry = {};
-  registerCommand(registry, "login", handlerLogin);
+  await registerCommand(registry, "login", handlerLogin);
+  await registerCommand(registry, "register", handlerRegister);
 
   const [cmdName, ...args] = argv.slice(2);
   const argsArray = Array.isArray(args) ? args : [];
@@ -22,11 +22,13 @@ function main(): void {
   }
 
   try {
-    runCommand(registry, cmdName, ...argsArray);
+    await runCommand(registry, cmdName, ...argsArray);
   } catch (error) {
     console.error(`Error: ${(error as Error).message}`);
     process.exit(1);
   }
+
+  process.exit(0);
 }
 
 main();
