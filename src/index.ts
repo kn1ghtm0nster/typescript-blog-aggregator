@@ -2,12 +2,17 @@ import { argv } from "process";
 
 import { CommandRegistry } from "./types/registry";
 import { registerCommand, runCommand } from "./funcs/registry-funcs";
-import { handlerLogin, handlerRegister } from "./handlers/command-handlers";
+import {
+  handlerLogin,
+  handlerRegister,
+  handlerReset,
+} from "./handlers/command-handlers";
 
 async function main(): Promise<void> {
   const registry: CommandRegistry = {};
   await registerCommand(registry, "login", handlerLogin);
   await registerCommand(registry, "register", handlerRegister);
+  await registerCommand(registry, "reset", handlerReset);
 
   const [cmdName, ...args] = argv.slice(2);
   const argsArray = Array.isArray(args) ? args : [];
@@ -16,7 +21,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  if (!argsArray.length) {
+  if (cmdName !== "reset" && !argsArray.length) {
     console.error("No arguments provided for the command.");
     process.exit(1);
   }

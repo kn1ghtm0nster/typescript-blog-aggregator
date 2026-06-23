@@ -1,6 +1,10 @@
 import { CommandHandler } from "../types/handler";
 import { setUser } from "../config";
-import { getUserByName, createUser } from "../lib/db/queries/users";
+import {
+  getUserByName,
+  createUser,
+  deleteUsers,
+} from "../lib/db/queries/users";
 
 export const handlerLogin: CommandHandler = async (cmdName, ...args) => {
   if (args.length === 0) {
@@ -35,4 +39,15 @@ export const handlerRegister: CommandHandler = async (cmdName, ...args) => {
 
   setUser(newUser.name);
   console.log(`User "${newUser.name}" has been registered successfully.`);
+};
+
+export const handlerReset: CommandHandler = async (cmdName, ...args) => {
+  try {
+    await deleteUsers();
+    console.log("Users table has been reset successfully.");
+    process.exit(0);
+  } catch (error) {
+    console.error(`Error resetting users table: ${(error as Error).message}`);
+    process.exit(1);
+  }
 };
