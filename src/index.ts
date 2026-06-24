@@ -7,6 +7,7 @@ import {
   handlerRegister,
   handlerReset,
   handlerUsers,
+  handlerAggregate,
 } from "./handlers/command-handlers";
 
 async function main(): Promise<void> {
@@ -15,6 +16,7 @@ async function main(): Promise<void> {
   await registerCommand(registry, "register", handlerRegister);
   await registerCommand(registry, "reset", handlerReset);
   await registerCommand(registry, "users", handlerUsers);
+  await registerCommand(registry, "agg", handlerAggregate);
 
   const [cmdName, ...args] = argv.slice(2);
   const argsArray = Array.isArray(args) ? args : [];
@@ -23,7 +25,12 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  if (cmdName !== "reset" && cmdName !== "users" && !argsArray.length) {
+  if (
+    cmdName !== "reset" &&
+    cmdName !== "users" &&
+    cmdName !== "agg" &&
+    !argsArray.length
+  ) {
     console.error("No arguments provided for the command.");
     process.exit(1);
   }

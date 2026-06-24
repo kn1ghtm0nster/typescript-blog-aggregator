@@ -6,6 +6,7 @@ import {
   deleteUsers,
   getAllUsers,
 } from "../lib/db/queries/users";
+import { fetchFeed } from "../funcs/xml-funcs";
 import { readConfig } from "../config";
 
 export const handlerLogin: CommandHandler = async (cmdName, ...args) => {
@@ -68,5 +69,16 @@ export const handlerReset: CommandHandler = async (cmdName, ...args) => {
   } catch (error) {
     console.error(`Error resetting users table: ${(error as Error).message}`);
     process.exit(1);
+  }
+};
+
+export const handlerAggregate: CommandHandler = async (cmdName, ...args) => {
+  try {
+    const feed = await fetchFeed("https://www.wagslane.dev/index.xml");
+    const JSONFeed = JSON.stringify(feed, null, 2);
+    console.log(JSONFeed);
+    process.exit(0);
+  } catch (error) {
+    console.error(`Error fetching feed: ${(error as Error).message}`);
   }
 };
