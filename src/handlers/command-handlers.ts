@@ -6,8 +6,10 @@ import {
   deleteUsers,
   getAllUsers,
 } from "../lib/db/queries/users";
+import { createFeed } from "../lib/db/queries/feeds";
 import { fetchFeed } from "../funcs/xml-funcs";
 import { readConfig } from "../config";
+import { User, Feed } from "../lib/db/schema";
 
 export const handlerLogin: CommandHandler = async (cmdName, ...args) => {
   if (args.length === 0) {
@@ -80,5 +82,42 @@ export const handlerAggregate: CommandHandler = async (cmdName, ...args) => {
     process.exit(0);
   } catch (error) {
     console.error(`Error fetching feed: ${(error as Error).message}`);
+    process.exit(1);
+  }
+};
+
+function printFeed(feed: Feed, user: User) {
+  console.log(`Feed Name: ${feed.name}`);
+  console.log(`Feed URL: ${feed.url}`);
+  console.log(`Associated User: ${user.name}`);
+}
+
+export const handlerAddFeed: CommandHandler = async (cmdName, ...args) => {
+  if (args.length < 2) {
+    throw new Error("Feed name and URL are required for add-feed command");
+  }
+
+  const [feedName, feedUrl] = args;
+
+  try {
+    const config = readConfig();
+    if (!config.currentUserName) {
+      throw new Error("No user is currently logged in. Please log in first.");
+    }
+
+    const currentUser = await getUserByName(config.currentUserName);
+    if (currentUser.length === 0) {
+      throw new Error(
+        `Current user "${config.currentUserName}" does not exist.`
+      );
+    }
+
+    const userId = currentUser[0].id;
+    const newFeed = await createFeed(feedName, feedUrl, userId);
+    printFeed(newFeed, currentUser[0]);
+    process.exit(0);
+  } catch (error) {
+    console.error(`Error adding feed: ${(error as Error).message}`);
+    process.exit(1);
   }
 };
