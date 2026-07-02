@@ -6,7 +6,7 @@ import {
   deleteUsers,
   getAllUsers,
 } from "../lib/db/queries/users";
-import { createFeed } from "../lib/db/queries/feeds";
+import { createFeed, getFeeds } from "../lib/db/queries/feeds";
 import { fetchFeed } from "../funcs/xml-funcs";
 import { readConfig } from "../config";
 import { User, Feed } from "../lib/db/schema";
@@ -119,5 +119,19 @@ export const handlerAddFeed: CommandHandler = async (cmdName, ...args) => {
   } catch (error) {
     console.error(`Error adding feed: ${(error as Error).message}`);
     process.exit(1);
+  }
+};
+
+export const handlerAllFeeds: CommandHandler = async (cmdName, ...args) => {
+  try {
+    const feeds = await getFeeds();
+
+    feeds.forEach((feed) => {
+      console.log(`Feed Name: ${feed.feeds.name}`);
+      console.log(`Feed URL: ${feed.feeds.url}`);
+      console.log(`Created By: ${feed.users.name}`);
+    });
+  } catch (error) {
+    console.error(`Error fetching feeds: ${(error as Error).message}`);
   }
 };

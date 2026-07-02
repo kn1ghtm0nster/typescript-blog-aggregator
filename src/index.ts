@@ -9,6 +9,7 @@ import {
   handlerUsers,
   handlerAggregate,
   handlerAddFeed,
+  handlerAllFeeds,
 } from "./handlers/command-handlers";
 
 async function main(): Promise<void> {
@@ -19,6 +20,7 @@ async function main(): Promise<void> {
   await registerCommand(registry, "users", handlerUsers);
   await registerCommand(registry, "agg", handlerAggregate);
   await registerCommand(registry, "addfeed", handlerAddFeed);
+  await registerCommand(registry, "feeds", handlerAllFeeds);
 
   const [cmdName, ...args] = argv.slice(2);
   const argsArray = Array.isArray(args) ? args : [];
@@ -31,7 +33,8 @@ async function main(): Promise<void> {
     cmdName !== "reset" &&
     cmdName !== "users" &&
     cmdName !== "agg" &&
-    cmdName !== "add-feed" &&
+    cmdName !== "addfeed" &&
+    cmdName !== "feeds" &&
     !argsArray.length
   ) {
     console.error("No arguments provided for the command.");
