@@ -1,4 +1,4 @@
-import { CommandHandler } from "../types/handler";
+import { CommandHandler, UserCommandHandler } from "../types/handler";
 import { setUser } from "../config";
 import {
   getUserByName,
@@ -96,7 +96,11 @@ function printFeed(feed: Feed, user: User) {
   console.log(`Associated User: ${user.name}`);
 }
 
-export const handlerAddFeed: CommandHandler = async (cmdName, ...args) => {
+export const handlerAddFeed: UserCommandHandler = async (
+  cmdName,
+  user,
+  ...args
+) => {
   if (args.length < 2) {
     throw new Error("Feed name and URL are required for add-feed command");
   }
@@ -104,21 +108,9 @@ export const handlerAddFeed: CommandHandler = async (cmdName, ...args) => {
   const [feedName, feedUrl] = args;
 
   try {
-    const config = readConfig();
-    if (!config.currentUserName) {
-      throw new Error("No user is currently logged in. Please log in first.");
-    }
-
-    const currentUser = await getUserByName(config.currentUserName);
-    if (currentUser.length === 0) {
-      throw new Error(
-        `Current user "${config.currentUserName}" does not exist.`
-      );
-    }
-
-    const userId = currentUser[0].id;
+    const userId = user.id;
     const newFeed = await createFeed(feedName, feedUrl, userId);
-    printFeed(newFeed, currentUser[0]);
+    printFeed(newFeed, user);
     const newFollow = await createFeedFollow(userId, newFeed.id);
     console.log(
       `User ${newFollow.userName} is now following feed ${newFollow.feedName}`
@@ -146,8 +138,9 @@ export const handlerAllFeeds: CommandHandler = async (cmdName, ...args) => {
   }
 };
 
-export const handlerUserFeedFollows: CommandHandler = async (
+export const handlerUserFeedFollows: UserCommandHandler = async (
   cmdName,
+  user,
   ...args
 ) => {
   try {
@@ -156,18 +149,12 @@ export const handlerUserFeedFollows: CommandHandler = async (
     }
     const url = args[0];
 
-    const config = readConfig();
-    if (!config.currentUserName) {
-      throw new Error("No user is currently logged in. Please log in first.");
-    }
-
-    const [currentUser] = await getUserByName(config.currentUserName);
     const feed = await getFeedByURL(url);
     if (!feed) {
       throw new Error("Feed not found");
     }
 
-    const newFeedFollow = await createFeedFollow(currentUser.id, feed.id);
+    const newFeedFollow = await createFeedFollow(user.id, feed.id);
 
     console.log(
       `User: ${newFeedFollow.userName} is now following feed: ${newFeedFollow.feedName}`
@@ -179,22 +166,13 @@ export const handlerUserFeedFollows: CommandHandler = async (
   }
 };
 
-export const handlerAllUserFeedFollows: CommandHandler = async (
+export const handlerAllUserFeedFollows: UserCommandHandler = async (
   cmdName,
+  user,
   ...args
 ) => {
   try {
-    const config = readConfig();
-    if (!config.currentUserName) {
-      throw new Error("No user is currently logged in. Please log in first.");
-    }
-
-    const [currentUser] = await getUserByName(config.currentUserName);
-    if (!currentUser) {
-      throw new Error("Current user not found");
-    }
-
-    const userFeeds = await getFeedFollowsForUser(currentUser.id);
+    const userFeeds = await getFeedFollowsForUser(user.id);
 
     userFeeds.forEach((feed) => {
       console.log(feed.feedName);

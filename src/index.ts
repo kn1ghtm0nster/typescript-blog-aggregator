@@ -1,5 +1,6 @@
 import { argv } from "process";
 
+import { middlewareLoggedIn } from "./middleware";
 import { CommandRegistry } from "./types/registry";
 import { registerCommand, runCommand } from "./funcs/registry-funcs";
 import {
@@ -21,10 +22,22 @@ async function main(): Promise<void> {
   await registerCommand(registry, "reset", handlerReset);
   await registerCommand(registry, "users", handlerUsers);
   await registerCommand(registry, "agg", handlerAggregate);
-  await registerCommand(registry, "addfeed", handlerAddFeed);
+  await registerCommand(
+    registry,
+    "addfeed",
+    middlewareLoggedIn(handlerAddFeed)
+  );
   await registerCommand(registry, "feeds", handlerAllFeeds);
-  await registerCommand(registry, "follow", handlerUserFeedFollows);
-  await registerCommand(registry, "following", handlerAllUserFeedFollows);
+  await registerCommand(
+    registry,
+    "follow",
+    middlewareLoggedIn(handlerUserFeedFollows)
+  );
+  await registerCommand(
+    registry,
+    "following",
+    middlewareLoggedIn(handlerAllUserFeedFollows)
+  );
 
   const [cmdName, ...args] = argv.slice(2);
   const argsArray = Array.isArray(args) ? args : [];
