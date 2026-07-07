@@ -10,6 +10,7 @@ import { createFeed, getFeeds, getFeedByURL } from "../lib/db/queries/feeds";
 import {
   createFeedFollow,
   getFeedFollowsForUser,
+  unfollowFeed,
 } from "../lib/db/queries/feed-follows";
 import { fetchFeed } from "../funcs/xml-funcs";
 import { readConfig } from "../config";
@@ -182,6 +183,31 @@ export const handlerAllUserFeedFollows: UserCommandHandler = async (
     console.error(
       `Error fetching user feed follows: ${(error as Error).message}`
     );
+    process.exit(1);
+  }
+};
+
+export const handlerUnfollowFeed: UserCommandHandler = async (
+  cmdName,
+  user,
+  ...args
+) => {
+  try {
+    if (args.length === 0) {
+      throw new Error("URL is required for this command");
+    }
+    const url = args[0];
+
+    const feed = await getFeedByURL(url);
+    if (!feed) {
+      throw new Error("Feed not found");
+    }
+
+    await unfollowFeed(user.id, feed.url);
+    console.log(`User ${user.name} has unfollowed feed ${feed.name}`);
+    process.exit(0);
+  } catch (error) {
+    console.error(`Error unfollowing feed: ${(error as Error).message}`);
     process.exit(1);
   }
 };
