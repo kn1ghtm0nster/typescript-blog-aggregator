@@ -55,7 +55,6 @@ async function main(): Promise<void> {
   if (
     cmdName !== "reset" &&
     cmdName !== "users" &&
-    cmdName !== "agg" &&
     cmdName !== "addfeed" &&
     cmdName !== "feeds" &&
     cmdName !== "follow" &&

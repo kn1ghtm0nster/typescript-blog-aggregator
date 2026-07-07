@@ -6,7 +6,13 @@ import {
   deleteUsers,
   getAllUsers,
 } from "../lib/db/queries/users";
-import { createFeed, getFeeds, getFeedByURL } from "../lib/db/queries/feeds";
+import {
+  createFeed,
+  getFeeds,
+  getFeedByURL,
+  markFeedFetched,
+  getNextFeedToFetch,
+} from "../lib/db/queries/feeds";
 import {
   createFeedFollow,
   getFeedFollowsForUser,
@@ -15,6 +21,7 @@ import {
 import { fetchFeed } from "../funcs/xml-funcs";
 import { readConfig } from "../config";
 import { User, Feed } from "../lib/db/schema";
+import { parseDuration } from "../lib/time";
 
 export const handlerLogin: CommandHandler = async (cmdName, ...args) => {
   if (args.length === 0) {
@@ -81,10 +88,32 @@ export const handlerReset: CommandHandler = async (cmdName, ...args) => {
 
 export const handlerAggregate: CommandHandler = async (cmdName, ...args) => {
   try {
-    const feed = await fetchFeed("https://www.wagslane.dev/index.xml");
-    const JSONFeed = JSON.stringify(feed, null, 2);
-    console.log(JSONFeed);
-    process.exit(0);
+    if (args.length !== 1) {
+      throw new Error(
+        "Request time is required (1m, 1h, etc.) for aggregate command"
+      );
+    }
+    const requestTime = args[0];
+    const requestIntervalMs = parseDuration(requestTime);
+
+    if (requestIntervalMs === 0) {
+      throw new Error("Invalid request time format");
+    }
+
+    console.log(`Collecting feeds every ${requestTime}`);
+    await scrapeFeeds();
+
+    const intervalId = setInterval(() => {
+      scrapeFeeds();
+    }, requestIntervalMs);
+
+    await new Promise<void>((resolve) => {
+      process.on("SIGINT", () => {
+        console.log("\nShutting down feed aggregator...");
+        clearInterval(intervalId);
+        resolve();
+      });
+    });
   } catch (error) {
     console.error(`Error fetching feed: ${(error as Error).message}`);
     process.exit(1);
@@ -211,3 +240,21 @@ export const handlerUnfollowFeed: UserCommandHandler = async (
     process.exit(1);
   }
 };
+
+async function scrapeFeeds() {
+  try {
+    const nextFeed = await getNextFeedToFetch();
+    if (!nextFeed) {
+      console.log("No feeds to scrape.");
+      return;
+    }
+    const result = await fetchFeed(nextFeed.url);
+    await markFeedFetched(nextFeed.id);
+
+    result.channel.item.forEach((item) => {
+      console.log(`Title: ${item.title}`);
+    });
+  } catch (error) {
+    console.error(`Error scraping feeds: ${(error as Error).message}`);
+  }
+}
