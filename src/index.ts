@@ -14,6 +14,7 @@ import {
   handlerUserFeedFollows,
   handlerAllUserFeedFollows,
   handlerUnfollowFeed,
+  handlerBrowseUserPosts,
 } from "./handlers/command-handlers";
 
 async function main(): Promise<void> {
@@ -44,6 +45,11 @@ async function main(): Promise<void> {
     "unfollow",
     middlewareLoggedIn(handlerUnfollowFeed)
   );
+  await registerCommand(
+    registry,
+    "browse",
+    middlewareLoggedIn(handlerBrowseUserPosts)
+  );
 
   const [cmdName, ...args] = argv.slice(2);
   const argsArray = Array.isArray(args) ? args : [];
@@ -60,6 +66,8 @@ async function main(): Promise<void> {
     cmdName !== "follow" &&
     cmdName !== "following" &&
     cmdName !== "unfollow" &&
+    cmdName !== "browse" &&
+    cmdName !== "agg" &&
     !argsArray.length
   ) {
     console.error("No arguments provided for the command.");

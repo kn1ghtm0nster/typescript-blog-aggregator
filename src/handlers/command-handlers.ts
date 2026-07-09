@@ -18,6 +18,7 @@ import {
   getFeedFollowsForUser,
   unfollowFeed,
 } from "../lib/db/queries/feed-follows";
+import { createPost, getPostsForUser } from "../lib/db/queries/posts";
 import { fetchFeed } from "../funcs/xml-funcs";
 import { readConfig } from "../config";
 import { User, Feed } from "../lib/db/schema";
@@ -241,6 +242,40 @@ export const handlerUnfollowFeed: UserCommandHandler = async (
   }
 };
 
+export const handlerBrowseUserPosts: UserCommandHandler = async (
+  cmdName,
+  user,
+  ...args
+) => {
+  try {
+    let limit = 2; // default limit
+    if (args.length > 0) {
+      const parsedLimit = parseInt(args[0]);
+      if (isNaN(parsedLimit) || parsedLimit < 1) {
+        console.error("Invalid limit provided. Using default limit of 2.");
+        return;
+      }
+      limit = parsedLimit;
+    }
+    const result = await getPostsForUser(user.id, limit);
+    if (result.length === 0) {
+      console.log("No posts found for the user.");
+      return;
+    }
+
+    result.forEach((post) => {
+      console.log(`Title: ${post.title}`);
+      console.log(`URL: ${post.url}`);
+      console.log(`Description: ${post.description || "N/A"}`);
+      console.log(`Published At: ${post.published_at.toISOString() || "N/A"}`);
+      console.log("--------------------------------------------------\n");
+    });
+  } catch (error) {
+    console.error(`Error fetching user posts: ${(error as Error).message}`);
+    process.exit(1);
+  }
+};
+
 async function scrapeFeeds() {
   try {
     const nextFeed = await getNextFeedToFetch();
@@ -251,9 +286,34 @@ async function scrapeFeeds() {
     const result = await fetchFeed(nextFeed.url);
     await markFeedFetched(nextFeed.id);
 
-    result.channel.item.forEach((item) => {
-      console.log(`Title: ${item.title}`);
-    });
+    for (const item of result.channel.item) {
+      if (!item.link) {
+        console.warn(`Item "${item.title}" is missing a link. Skipping.`);
+        continue;
+      }
+
+      const publishedAt = new Date(item.pubDate);
+      if (isNaN(publishedAt.getTime())) {
+        console.warn(`Invalid publication date for item: ${item.title}`);
+        continue;
+      }
+
+      try {
+        await createPost(
+          item.title,
+          item.link,
+          item.description,
+          publishedAt,
+          nextFeed.id
+        );
+      } catch (error) {
+        console.warn(
+          "Post already exists or failed to create:",
+          (error as Error).message
+        );
+        continue;
+      }
+    }
   } catch (error) {
     console.error(`Error scraping feeds: ${(error as Error).message}`);
   }
